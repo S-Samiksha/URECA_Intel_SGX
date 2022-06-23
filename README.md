@@ -1,22 +1,17 @@
-## Introduction
-In many applications, sensitive code needs to run on a higher security level than that of the operating system. These sensitive codes run on environments called the Trusted Execution Environments(TEE). One such TEE is the Intel Software Guard Extensions (SGX). SGX creates enclaves that are separated from the operating system and the hypervisor to ensure that the codes in the enclaves are protected.[1], [2]
-
-The aim of this research is to replicate existing vulnerabilities in IntelSGX on the machine that is available in NTU's Hardware and Embedded Systems Laboratory. The machine being used is the Dell Optiplex 5080 MT/SFF equipped with the Intel **i5-10500 processor** (3.1GHz up to 4.5Ghz 12MB smart cache) with IntelSGX support. 
-
-All of the codes work using a machine that supports IntelSGX. To download the SDK, refer to https://github.com/intel/linux-sgx. 
-
-## Objective of this research 
-To create a repository of possible attacks that can be carried out on intel processors that support Intel SGX. Additionally, this repository aims to automate regression testing such that when a new processor is to be tested, one simply needs to run the shell script. This repository is still work in progress and will be updated regularly. 
-
 ## Overview of the Github
 This repository provides both Non Intel SGX attacks and Intel SGX attacks. The attacks are in a tar file. The purpose of each attack is provided. 
 
 ### Non Intel SGX Attacks 
+Two versions,[1](https://github.com/chaitanyarahalkar/Spectre-PoC) and [2](https://github.com/crozone/SpectrePoC), of the Spectre Attacks were found. 
+Both these attacks required no additional adaptation to the Intel Processor we were using. 
+
+For codes running outside of Intel SGX enclaves, they are susceptible to cache attacks. Here is a [repository](https://github.com/IAIK/cache_template_attacks) that allows us to know whether the processor is susceptible to the cache attacks or not. 
 
 ### Intel SGX Attacks 
-------------------------
-Purpose of Test_1_Clflush
-------------------------
+
+
+**Purpose of Test_1_Clflush** <br>
+
 The code was copied from the cacheout research paper provided in [here](https://cacheoutattack.com/files/CacheOut.pdf). For easy reference here is the code:
 
 
@@ -34,7 +29,7 @@ xend;
 
 ```
 
-The above code was adapted and only the first two lines were used:
+The above code was adapted and only the first two lines were used to test whether these instructions worked or not:
 
 ```assembly
 clflush (%rdi);
@@ -44,15 +39,13 @@ clflush (%rsi);
 
 The `clflush` instruction alone does not work within the SGX enclave. But only works **outside** the enclave. This could be due to the protected memory within Intel SGX that does not allow the `clflush` instruction to dump contents of the cache into shared memory. 
 
-------------------------
-Purpose of Test_2_Clflush
-------------------------
+
+**Purpose of Test_2_Clflush** <br>
+
 
 Following Test 1, this is simply to test the `clflush` instruction outside of enclave execution. This should work normally causing no errors. 
 
-------------------------
-Purpose of Test_3_TAA_NG
-------------------------
+**Purpose of Test_3_TAA_NG** <br>
 
 The code was copied from the cacheout research paper provided in [here](https://cacheoutattack.com/files/CacheOut.pdf). For easy reference here is the code:
 
@@ -71,13 +64,11 @@ xend;
 
 It is realized that the `xbeing abort` and `xend` only works on processors that has TSX enabled. In the current machine that we have, these instructions will result in an illegal instruction. 
 
-------------------------
-Purpose of Flush_Reload 
-------------------------
+**Purpose of Flush_Reload** <br>
 
-This particular code was updated from [here](https://github.com/jovanbulck/sgx-tutorial-space18/tree/master/003-sgx-flush-and-reload). This particular code is only for unprotected memory within the sgx enclave.
+This particular code was adapted from [here](https://github.com/jovanbulck/sgx-tutorial-space18/tree/master/003-sgx-flush-and-reload). This particular code is only for unprotected memory within the SGX enclave.
 
-Due to the nature of flush+reload using cache flush, it is not possible to run a flush+reload for an enclave you do not have access to. This is the [USENIX PAPER](https://www.usenix.org/system/files/conference/usenixsecurity14/sec14-paper-yarom.pdf). In this paper, we see this particular code:
+This is the [USENIX PAPER](https://www.usenix.org/system/files/conference/usenixsecurity14/sec14-paper-yarom.pdf). In this paper, we see this particular code:
 
 ```c++
  int probe(char *adrs) {
@@ -100,9 +91,10 @@ asm __volatile__ (
 }
 
 ```
-This may not be possible within the SGX Enclave due to clflush not working as shown earlier in test 1. Additionally, it is quoted in this [paper](https://arxiv.org/pdf/1802.09085.pdf) that clflush is not possible as we cannot access memory that belongs to an enclave from the outside. 
 
 
+### Test Demo Video
+This shows all the output provided by the tests. The latest `test.sh` script allows us to obtain an output file that gives us a direct interpretation of the tests. 
 
 
 **References**
